@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section>
+  <article>
+    <h1>Make a reservation</h1>
+    <!--Begin row-->
+    <div class="row">
+      <!--Begin col-->
+      <div class="column">
+       
+        <form method="POST" id="form">
+          {%csrf_token%}
+          <!-- {% csrf_token %} -->
+          <p>
+            <label for="first_name">Name:</label>
+            <input type="text" placeholder="Your Name" maxlength="200" required="" id="first_name">
+          </p>
+          <p>
+            <label for="reservation_date">date:</label>
+            <input type="date" placeholder="select date" maxlength="200" required="" id="reservation_date">
+          </p>
+
+          <p>
+            <!-- <label for="reservation_slot">Reservation time:</label>
+              <select id="reservation_slot">
+                <option value="0" disabled>Select time</option>
+              </select> -->
+            <label for="reservation_slot">Reservation time:</label>
+            <select name="reservation_slot" id="reservation_slot">
+              <!-- <option value=""></option> -->
+            </select>
+          </p>
+          
+          <button type="button" id="button">Reserve</button>
+        </form>
+      </div>
+      <!--End col-->
+
+      <!--Begin col-->
+      <div class="column">
+        <h2>Bookings For <span id="today"></span></h2>
+        <div id="bookings">
+        </div>
+      </div>
+      <!--End col-->
+    </div>
+    <!--End row-->
+
+
+
+
+  </article>
+</section>
+<script>
+
+  listoftime = ``
+  for (let i = 0; i < 25; i++) {
+    listoftime += `<option value="${i}" id="resoption${i}">${i}:00</option>`
+
+  }
+
+  document.getElementById("reservation_slot").innerHTML = listoftime
+  document.getElementById('reservation_date').addEventListener('input', function (e) {
+    tdate = document.getElementById('reservation_date').value
+    xhr = new XMLHttpRequest()
+    url = `http://127.0.0.1:8000/bookings/`
+    xhr.open('GET', url)
+
+    xhr.onreadystatechange = () => {
+      // console.log("hello");
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        res = JSON.parse(xhr.responseText)
+        console.log(res);
+        console.log(tdate);
+        nres = res.filter((iterativevalue) => iterativevalue.fields.reservation_date == tdate)
+        console.log(nres);
+        for (let i = 0; i < res.length; i++) {
+          document.getElementById(`resoption${i}`).setAttribute('disabled','')
+          
+        }
+        resrverd=``
+        for (let i = 0; i < res.length; i++) {
+          resrverd+=`<h3>${res[i].fields.first_name}:${res[i].fields.reservation_slot}</h3>`
+        }
+
+        document.getElementById('bookings').innerHTML=resrverd
+        document.getElementById('today').innerText=tdate
+      
+
+      }
+    }
+    xhr.send()
+
+  })
+  document.getElementById('button').addEventListener('click', function (e) {
+
+    const formdata = {
+      first_name: document.getElementById('first_name').value,
+      reservation_date: document.getElementById('reservation_date').value,
+      reservation_slot: document.getElementById('reservation_slot').value,
+    }
+
+    xhr = new XMLHttpRequest()
+    url = `http://127.0.0.1:8000/book/`
+    xhr.open('POST', url)
+    xhr.setRequestHeader('Access-Control-Allow-Origin', '*')
+    xhr.setRequestHeader('Content-Type', 'application/json')
+
+    xhr.onreadystatechange = () => {
+
+    }
+    xhr.send(JSON.stringify(formdata))
+
+
+  })
+
+</script>
+{%endblock%}
